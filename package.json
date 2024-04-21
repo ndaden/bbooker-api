@@ -1,0 +1,24 @@
+{
+  "name": "api-elysia",
+  "version": "1.0.50",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts",
+    "start": "bun run start"
+  },
+  "dependencies": {
+    "@elysiajs/cookie": "^0.8.0",
+    "@elysiajs/cors": "^0.8.0",
+    "@elysiajs/jwt": "^0.8.0",
+    "@elysiajs/swagger": "^0.8.5",
+    "@prisma/client": "^5.10.2",
+    "dayjs": "^1.11.10",
+    "elysia": "latest",
+    "firebase": "^10.8.1"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "prisma": "^5.10.2"
+  },
+  "module": "src/index.js"
+}

@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  email       String        @unique
+  role        Role
+  hash        String
+  active      Boolean       @default(true)
+  profile     Profile?
+  business    Business?
+  createDate  DateTime      @default(now())
+  updateDate  DateTime?
+  appointment Appointment[]
+
+  @@map("account")
+}
+
+model Profile {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  account      Account @relation(fields: [accountId], references: [id])
+  accountId    String  @unique @db.ObjectId
+  firstName    String?
+  lastName     String?
+  address      String?
+  phoneNumber  String?
+  profileImage String?
+
+  @@map("profile")
+}
+
+enum Role {
+  ADMIN
+  OWNER
+  STANDARD
+
+  @@map("role")
+}
+
+model Business {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  account     Account   @relation(fields: [accountId], references: [id])
+  accountId   String    @unique @db.ObjectId
+  name        String
+  description String?
+  image       String?
+  services    Service[]
+  openingTime String?
+  closingTime String?
+  createDate  DateTime  @default(now())
+  updateDate  DateTime?
+
+  @@map("business")
+}
+
+model Service {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  duration    Int
+  price       Float
+  business    Business      @relation(fields: [businessId], references: [id])
+  businessId  String        @db.ObjectId
+  appointment Appointment[]
+
+  @@map("service")
+}
+
+model Appointment {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  service    Service   @relation(fields: [serviceId], references: [id])
+  serviceId  String    @db.ObjectId
+  account    Account   @relation(fields: [accountId], references: [id])
+  accountId  String    @db.ObjectId
+  startTime  DateTime
+  endTime    DateTime
+  createDate DateTime  @default(now())
+  updateDate DateTime?
+
+  @@map("appointment")
+}
