@@ -73,6 +73,7 @@ export const authentification = (app: Elysia) =>
           });
 
           setCookie("access_token", accessToken, {
+            domain: process.env.COOKIE_DOMAIN,
             maxAge: 15 * 60, // 15 minutes
             path: "/",
           });
@@ -196,6 +197,7 @@ export const authentification = (app: Elysia) =>
         "/logout",
         ({ setCookie }) => {
           setCookie("access_token", undefined, {
+            domain: process.env.COOKIE_DOMAIN,
             maxAge: 0,
             path: "/",
           });
