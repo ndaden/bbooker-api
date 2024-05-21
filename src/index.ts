@@ -25,8 +25,8 @@ const app: Elysia = new Elysia()
         request.headers.get("Access-Control-Request-Headers") ?? "";
     }
   })
-  .use(cors())
   .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
+  .use(cors())
   .use(isMaintenance)
   .onError(({ error }) => {
     console.log(error);
