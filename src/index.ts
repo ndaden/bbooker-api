@@ -26,7 +26,7 @@ const app: Elysia = new Elysia()
     }
   })
   .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
-  .use(cors())
+  .use(cors({ origin: "*" }))
   .use(isMaintenance)
   .onError(({ error }) => {
     console.log(error);
