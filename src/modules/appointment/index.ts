@@ -4,9 +4,9 @@ import { createAppointmentType } from "./types";
 import { prisma } from "../../libs/prisma";
 import { buildApiResponse } from "../../utils/api";
 import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween"
+import isBetween from "dayjs/plugin/isBetween";
 
-dayjs.extend(isBetween)
+dayjs.extend(isBetween);
 
 export const appointment = (app: Elysia) =>
   app.group("/appointment", (app) =>
@@ -57,68 +57,90 @@ export const appointment = (app: Elysia) =>
           detail: { tags: ["appointment"] },
         }
       )
-      .get("/slots/:serviceId", async ({ params, query }) => {
-        const { serviceId } = params
-        const { startTimeInterval, endTimeInterval, slotDurationInMinutes } = query
+      .get(
+        "/slots/:serviceId",
+        async ({ params, query }) => {
+          const { serviceId } = params;
+          const { startTimeInterval, endTimeInterval, slotDurationInMinutes } =
+            query;
 
-        let slots = []
-        
-        if (serviceId) {
-          const foundAppointments = await prisma.appointment.findMany({
-            where: {
-              serviceId,
-            },
-          });
+          let slots = [];
 
-          let time = dayjs(startTimeInterval);
+          if (serviceId) {
+            const foundAppointments = await prisma.appointment.findMany({
+              where: {
+                serviceId,
+              },
+            });
 
-          while( time.isBefore(dayjs(endTimeInterval))) {
-            const slotFree = !foundAppointments.find(appt => time.isBetween(appt.startTime, appt.endTime))
-            slots.push({ free: slotFree, startTime: time, endTime: time.add(Number.parseInt(slotDurationInMinutes), 'minutes')})
-            time = time.add(Number.parseInt(slotDurationInMinutes), 'minutes')
+            let time = dayjs(startTimeInterval);
+
+            while (time.isBefore(dayjs(endTimeInterval))) {
+              const slotFree = !foundAppointments.find((appt) =>
+                time.isBetween(appt.startTime, appt.endTime)
+              );
+              slots.push({
+                free: slotFree,
+                startTime: time,
+                endTime: time.add(
+                  Number.parseInt(slotDurationInMinutes),
+                  "minutes"
+                ),
+              });
+              time = time.add(
+                Number.parseInt(slotDurationInMinutes),
+                "minutes"
+              );
+            }
           }
-        }
 
-        return buildApiResponse(true, "slots for service", slots)
-      }, {
-        detail: { tags: ["appointment"] },
-      })
+          return buildApiResponse(true, "slots for service", slots);
+        },
+        {
+          detail: { tags: ["appointment"] },
+        }
+      )
       .post(
         "/",
         async ({ account, body }) => {
           if (!account) {
             return buildApiResponse(false, "unauthorized");
           }
-          const { serviceId, startTime, endTime } = body;
-
-          if (dayjs(startTime).isAfter(dayjs(endTime))) {
-            return buildApiResponse(false, "startTime must be before endTime");
-          }
+          const { serviceId, startTime } = body;
 
           const service = await prisma.service.findFirst({
             where: {
-              id: serviceId
-            }
-          })
+              id: serviceId,
+            },
+          });
 
           if (!service) {
-            return buildApiResponse(false, "service does not exist.")
+            return buildApiResponse(false, "service does not exist.");
           }
+
+          const endTime = dayjs(startTime).add(service.duration, "minutes");
 
           const appointmentsByService = await prisma.appointment.findMany({
             where: {
-              serviceId: serviceId,
+              service: { businessId: service.businessId },
+            },
+            include: {
+              service: true,
             },
           });
 
           const conflictingAppointments = appointmentsByService.filter(
             (appt) => {
               return (
-                (dayjs(startTime).isAfter(appt.startTime) || dayjs(startTime).isSame(appt.startTime)) &&
-                dayjs(startTime).isBefore(appt.endTime) || dayjs(startTime).isSame(appt.endTime)) ||
-                ((dayjs(endTime).isAfter(appt.startTime) || dayjs(endTime).isSame(appt.startTime)) &&
-                  (dayjs(endTime).isBefore(appt.endTime) || dayjs(endTime).isSame(appt.startTime))
-                );
+                ((dayjs(startTime).isAfter(appt.startTime) ||
+                  dayjs(startTime).isSame(appt.startTime)) &&
+                  dayjs(startTime).isBefore(appt.endTime)) ||
+                dayjs(startTime).isSame(appt.endTime) ||
+                ((dayjs(endTime).isAfter(appt.startTime) ||
+                  dayjs(endTime).isSame(appt.startTime)) &&
+                  (dayjs(endTime).isBefore(appt.endTime) ||
+                    dayjs(endTime).isSame(appt.startTime)))
+              );
             }
           );
 
@@ -149,10 +171,10 @@ export const appointment = (app: Elysia) =>
           detail: { tags: ["appointment"] },
         }
       )
-      .patch("/:id", async ({ account, body, params }) => { }, {
+      .patch("/:id", async ({ account, body, params }) => {}, {
         detail: { tags: ["appointment"] },
       })
-      .delete("/:id", async ({ account, params }) => { }, {
+      .delete("/:id", async ({ account, params }) => {}, {
         detail: { tags: ["appointment"] },
       })
   );

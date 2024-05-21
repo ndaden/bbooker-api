@@ -42,14 +42,6 @@ model Profile {
   @@map("profile")
 }
 
-enum Role {
-  ADMIN
-  OWNER
-  STANDARD
-
-  @@map("role")
-}
-
 model Business {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   account     Account   @relation(fields: [accountId], references: [id])
@@ -91,4 +83,10 @@ model Appointment {
   updateDate DateTime?
 
   @@map("appointment")
+}
+
+enum Role {
+  ADMIN
+  OWNER
+  STANDARD
 }

@@ -26,6 +26,7 @@ const app: Elysia = new Elysia()
     }
   })
   .use(cors())
+  .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
   .use(isMaintenance)
   .onError(({ error }) => {
     console.log(error);
@@ -39,7 +40,6 @@ const app: Elysia = new Elysia()
     })
   )
   .use(cookie())
-  .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
   .use(authentification)
   .use(business)
   .use(appointment)
