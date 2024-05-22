@@ -194,12 +194,9 @@ export const authentification = (app: Elysia) =>
       )
       .get(
         "/logout",
-        ({ setCookie }) => {
-          setCookie("access_token", undefined, {
-            domain: process.env.COOKIE_DOMAIN,
-            maxAge: 0,
-            path: "/",
-          });
+        ({ cookie: { access_token } }) => {
+          access_token.remove();
+
           return buildApiResponse(true, "logged out.");
         },
         { detail: { tags: ["auth"] } }
