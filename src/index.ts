@@ -11,6 +11,8 @@ import { isMaintenance } from "./middlewares/maintenance";
 import { buildApiResponse } from "./utils/api";
 import { cors } from "@elysiajs/cors";
 
+console.log(`CORS_ORIGINS: ${process.env.CORS_ORIGINS}`);
+
 const app: Elysia = new Elysia()
   .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
   .use(cors({ origin: process.env.CORS_ORIGINS ?? "*" }))
