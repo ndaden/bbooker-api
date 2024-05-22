@@ -2,7 +2,6 @@ import { Elysia, t } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { swaggerConfig } from "./configuration";
 import { ElysiaSwaggerConfig } from "@elysiajs/swagger/dist/types";
-import { cookie } from "@elysiajs/cookie";
 import { jwt } from "@elysiajs/jwt";
 import { authentification } from "./modules/authentication";
 import { business } from "./modules/business";
@@ -11,28 +10,35 @@ import { isMaintenance } from "./middlewares/maintenance";
 import { buildApiResponse } from "./utils/api";
 import { cors } from "@elysiajs/cors";
 
-console.log(`CORS_ORIGINS: ${process.env.CORS_ORIGINS}`);
-
 const app: Elysia = new Elysia()
-  .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
-  .use(cors({ origin: process.env.CORS_ORIGINS ?? "*" }))
-  .use(isMaintenance)
-  .onError(({ error }) => {
-    console.log(error);
-    return buildApiResponse(false, "An error occured, please contact admin.");
-  })
-  .get("/", () => "Welcome to BBooker.", { detail: { tags: ["app"] } })
   .use(
     jwt({
       name: "jwt",
       secret: Bun.env.JWT_SECRET!,
     })
   )
-  .use(cookie())
+  .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
+  .onAfterHandle(({ set, headers }) => {
+    set.headers["Access-Control-Allow-Origin"] = process.env.CORS_ORIGINS ?? "";
+    set.headers["Access-Control-Allow-Credentials"] = "true";
+    set.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
+  })
+  .use(cors({ origin: true }))
+  .use(isMaintenance)
+  .onError(({ error }) => {
+    console.log(error);
+    return buildApiResponse(false, "An error occured, please contact admin.");
+  })
+  .get(
+    "/",
+    () => {
+      return "Welcome to BBooker.";
+    },
+    { detail: { tags: ["app"] } }
+  )
   .use(authentification)
   .use(business)
   .use(appointment)
-
   .listen(3002);
 
 console.log(

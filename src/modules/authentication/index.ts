@@ -43,7 +43,7 @@ export const authentification = (app: Elysia) =>
       )
       .post(
         "/login",
-        async ({ body, set, jwt, setCookie }) => {
+        async ({ body, jwt, set, cookie: { access_token } }) => {
           const { email, password } = body;
           const account = await prisma.account.findFirst({
             where: {
@@ -72,11 +72,10 @@ export const authentification = (app: Elysia) =>
             accountId: account.id,
           });
 
-          setCookie("access_token", accessToken, {
-            domain: process.env.COOKIE_DOMAIN,
-            maxAge: 15 * 60, // 15 minutes
-            path: "/",
-          });
+          access_token.value = accessToken;
+          access_token.domain = process.env.COOKIE_DOMAIN;
+          access_token.maxAge = 15 * 60;
+          access_token.path = "/";
 
           return buildApiResponse(true, "login successful.");
         },
