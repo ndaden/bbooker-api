@@ -14,20 +14,6 @@ import { cors } from "@elysiajs/cors";
 const app: Elysia = new Elysia()
   .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
   .use(cors())
-  .onAfterHandle(({ request, set }) => {
-    set.headers["Access-Control-Allow-Methods"] =
-      "GET, POST, PUT, DELETE, PATCH";
-
-    // Only process CORS requests
-    if (request.method !== "OPTIONS") return;
-
-    const allowHeader = set.headers["Access-Control-Allow-Headers"];
-    if (allowHeader === "*") {
-      set.headers["Access-Control-Allow-Headers"] =
-        request.headers.get("Access-Control-Request-Headers") ?? "";
-    }
-  })
-
   .use(isMaintenance)
   .onError(({ error }) => {
     console.log(error);
