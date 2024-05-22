@@ -12,6 +12,8 @@ import { buildApiResponse } from "./utils/api";
 import { cors } from "@elysiajs/cors";
 
 const app: Elysia = new Elysia()
+  .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
+  .use(cors())
   .onAfterHandle(({ request, set }) => {
     set.headers["Access-Control-Allow-Methods"] =
       "GET, POST, PUT, DELETE, PATCH";
@@ -25,8 +27,7 @@ const app: Elysia = new Elysia()
         request.headers.get("Access-Control-Request-Headers") ?? "";
     }
   })
-  .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
-  .use(cors({ origin: "*" }))
+
   .use(isMaintenance)
   .onError(({ error }) => {
     console.log(error);
@@ -43,6 +44,7 @@ const app: Elysia = new Elysia()
   .use(authentification)
   .use(business)
   .use(appointment)
+
   .listen(3002);
 
 console.log(
