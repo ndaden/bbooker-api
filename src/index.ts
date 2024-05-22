@@ -13,7 +13,7 @@ import { cors } from "@elysiajs/cors";
 
 const app: Elysia = new Elysia()
   .use(swagger(swaggerConfig as ElysiaSwaggerConfig))
-  .use(cors())
+  .use(cors({ origin: process.env.CORS_ORIGINS ?? "*" }))
   .use(isMaintenance)
   .onError(({ error }) => {
     console.log(error);
