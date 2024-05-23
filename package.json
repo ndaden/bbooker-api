@@ -12,7 +12,7 @@
     "@elysiajs/swagger": "^1.0.5",
     "@prisma/client": "^5.10.2",
     "dayjs": "^1.11.10",
-    "elysia": "latest",
+    "elysia": "^1.0.22",
     "firebase": "^10.8.1"
   },
   "devDependencies": {
