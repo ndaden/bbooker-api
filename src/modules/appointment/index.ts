@@ -58,37 +58,54 @@ export const appointment = (app: Elysia) =>
         }
       )
       .get(
-        "/slots/:serviceId",
+        "/slots/:businessId",
         async ({ params, query }) => {
-          const { serviceId } = params;
+          const { businessId } = params;
           const { startTimeInterval, endTimeInterval, slotDurationInMinutes } =
             query;
 
           let slots = [];
 
-          if (serviceId) {
-            const foundAppointments = await prisma.appointment.findMany({
+          if (businessId) {
+            const appointmentsForBusiness = await prisma.appointment.findMany({
               where: {
-                serviceId,
+                service: {
+                  businessId: businessId,
+                },
               },
             });
 
-            let time = dayjs(startTimeInterval);
+            let startInterval = dayjs.unix(Number(startTimeInterval));
+            const endInterval = dayjs.unix(Number(endTimeInterval));
 
-            while (time.isBefore(dayjs(endTimeInterval))) {
-              const slotFree = !foundAppointments.find((appt) =>
-                time.isBetween(appt.startTime, appt.endTime)
-              );
-              slots.push({
-                free: slotFree,
-                startTime: time,
-                endTime: time.add(
-                  Number.parseInt(slotDurationInMinutes),
-                  "minutes"
-                ),
-              });
-              time = time.add(
-                Number.parseInt(slotDurationInMinutes),
+            while (startInterval.isBefore(endInterval)) {
+              if (
+                startInterval.hour() >= 8 &&
+                startInterval.isBefore(
+                  startInterval
+                    .hour(19)
+                    .subtract(Number(slotDurationInMinutes), "minutes")
+                )
+              ) {
+                const slotFree = !appointmentsForBusiness.find((appt) =>
+                  startInterval.isBetween(
+                    appt.startTime,
+                    appt.endTime,
+                    "minutes",
+                    "[)"
+                  )
+                );
+                slots.push({
+                  free: slotFree,
+                  startTime: startInterval,
+                  endTime: startInterval.add(
+                    Number(slotDurationInMinutes),
+                    "minutes"
+                  ),
+                });
+              }
+              startInterval = startInterval.add(
+                Number(slotDurationInMinutes),
                 "minutes"
               );
             }

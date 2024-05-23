@@ -81,6 +81,21 @@ export const authentification = (app: Elysia) =>
         },
         { body: loginBodyType, detail: { tags: ["auth"] } }
       )
+      .get(
+        "/logout",
+        ({ cookie: { access_token } }) => {
+          // access_token.remove() is not working, so we use a workaround
+          access_token.set({
+            path: "/",
+            domain: process.env.COOKIE_DOMAIN,
+            maxAge: 0,
+            value: "",
+          });
+
+          return buildApiResponse(true, "logout successful.");
+        },
+        { detail: { tags: ["auth"] } }
+      )
       .use(isAuthenticated)
       .get(
         "/profile",
@@ -191,14 +206,5 @@ export const authentification = (app: Elysia) =>
           return buildApiResponse(true, "account updated", updatedAccount);
         },
         { body: patchAccountBodyType, detail: { tags: ["auth"] } }
-      )
-      .get(
-        "/logout",
-        ({ cookie: { access_token } }) => {
-          access_token.remove();
-
-          return buildApiResponse(true, "logged out.");
-        },
-        { detail: { tags: ["auth"] } }
       )
   );

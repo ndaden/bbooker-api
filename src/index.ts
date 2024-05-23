@@ -39,8 +39,6 @@ const app: Elysia = new Elysia()
   .use(authentification)
   .use(business)
   .use(appointment)
-  .listen(3002, ({ hostname, port}) => {
-    console.log(
-      `🦊 Elysia is running at ${hostname}:${port}`
-    );
+  .listen(3002, ({ hostname, port }) => {
+    console.log(`🦊 Elysia is running at ${hostname}:${port}`);
   });
