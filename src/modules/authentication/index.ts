@@ -5,6 +5,7 @@ import { accountBodyType, loginBodyType, patchAccountBodyType } from "./types";
 import { buildApiResponse } from "../../utils/api";
 import { isAuthenticated } from "../../middlewares/authentication";
 import { uploadImageToFirebase } from "../../utils/upload";
+import { getErrorMessage } from "../../utils/errors";
 
 export const authentification = (app: Elysia) =>
   app.group("/auth", (app) =>
@@ -13,18 +14,23 @@ export const authentification = (app: Elysia) =>
         "/signup",
         async ({ body, set }) => {
           const { email, password, passwordAgain } = body;
-
+          try {
           if (password === passwordAgain) {
             const { hash } = await hashPassword(password);
 
+            
             const newAccount = await prisma.account.create({
               data: {
                 email,
                 hash,
                 role: "STANDARD",
               },
-            });
-
+              select: {
+                id: true,
+                email: true
+              }
+            }); 
+          
             set.status = "Created";
             return buildApiResponse(
               true,
@@ -35,6 +41,10 @@ export const authentification = (app: Elysia) =>
             set.status = "Bad Request";
             return buildApiResponse(false, "Passwords don't match");
           }
+        } catch (error: any) {
+          set.status = "Bad Request"; 
+          return buildApiResponse(false, getErrorMessage(error.code));
+        }
         },
         {
           body: accountBodyType,
@@ -75,6 +85,9 @@ export const authentification = (app: Elysia) =>
           access_token.value = accessToken;
           access_token.domain = process.env.COOKIE_DOMAIN;
           access_token.maxAge = 15 * 60;
+          access_token.secure = true;
+          access_token.sameSite = "strict";
+          access_token.httpOnly = true;
           access_token.path = "/";
 
           return buildApiResponse(true, "login successful.");
@@ -134,7 +147,7 @@ export const authentification = (app: Elysia) =>
 
           if (profileImage) {
             // upload profile image and get url
-            const uploadResult = await uploadImageToFirebase(profileImage);
+            const uploadResult = await uploadImageToFirebase(profileImage, account.id, 'profile-image');
 
             if (!uploadResult.success) {
               set.status = "Bad Request";

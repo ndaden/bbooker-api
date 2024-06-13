@@ -19,7 +19,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
-const uploadImageToFirebase = async (image: File): Promise<{ success: boolean, error?: string, url?: string }> => {
+const uploadImageToFirebase = async (image: File, accountId: string, filename: string): Promise<{ success: boolean, error?: string, url?: string }> => {
   const extension = image.name.split('.').pop()
   if (!AUTHORIZED_FILE_TYPES.includes(image.type)) {
     return { success: false, error: "unauthorized file type." }
@@ -27,7 +27,10 @@ const uploadImageToFirebase = async (image: File): Promise<{ success: boolean, e
   if (image.size > MAX_FILE_SIZE) {
     return { success: false, error: "file is too big." }
   }
-  const storageRef = ref(storage, `${sha256hash(image.name)}.${extension}`);
+  
+  const timestamp = new Date().getTime();
+
+  const storageRef = ref(storage, `${accountId}/${filename}-${timestamp}.${extension}`);
   const snapshot = await uploadBytes(storageRef, await image.arrayBuffer());
   return { success: true, url: await getDownloadURL(snapshot.ref) };
 }
